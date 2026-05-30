@@ -203,7 +203,8 @@
             </div>
 
             <div id="weeklyFeaturedSection" class="w-full md:w-2/5 flex justify-center items-center">
-                <div onclick="openPlaceDetailsDirectlyFromFeatured()" class="bg-white text-slate-900 rounded-3xl p-4 shadow-xl border border-slate-100 max-w-sm w-full relative transform hover:scale-105 transition-transform duration-300 cursor-pointer">
+                <!-- נוסף תג a כדי לעזור ל-SEO -->
+                <a id="weeklyFeaturedLink" href="#" onclick="openPlaceDetailsDirectlyFromFeatured(); event.preventDefault();" class="block bg-white text-slate-900 rounded-3xl p-4 shadow-xl border border-slate-100 max-w-sm w-full relative transform hover:scale-105 transition-transform duration-300 cursor-pointer">
                     <div class="absolute -top-3 right-4 bg-[#00c2e8] text-white text-[11px] font-black px-3 py-1 rounded-full shadow-md z-10">
                         נבחר השבוע ⭐
                     </div>
@@ -218,7 +219,7 @@
                         <span class="flex items-center gap-1"><i class="fa-solid fa-star text-amber-500"></i> <span id="weeklyFeaturedRating" class="font-bold text-slate-950">-</span></span>
                         <span id="weeklyFeaturedKosher" class="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">בטעינה</span>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 
@@ -421,7 +422,17 @@
                 <i class="fa-solid fa-arrow-right text-brand-500 text-sm"></i>
                 <span>חזרה</span>
             </button>
-            <span class="font-black text-slate-900 text-sm">פרטי בית העסק ✨</span>
+            
+            <!-- הוספת הלוגו בחלון המסעדה ליציאה מהירה / דף הבית -->
+            <a href="#" onclick="closeDetailsModal(); handleLogoClick(); return false;" class="flex items-center gap-1.5 shrink-0" aria-label="חזרה לדף הבית">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg wolt-cyan flex items-center justify-center text-white shadow-sm">
+                    <i class="fa-solid fa-utensils text-[10px] sm:text-[11px] text-white"></i>
+                </div>
+                <span class="text-sm sm:text-base font-black tracking-tight text-brand-500 flex items-center gap-0.5 leading-none">
+                    Kosher<span class="text-slate-900">Go</span>
+                </span>
+            </a>
+
             <button id="modalFavBtn" onclick="toggleFavoriteFromModal()" class="text-rose-500 p-2 hover:bg-rose-50 rounded-full transition-colors">
                 <i id="modalFavIcon" class="fa-regular fa-heart text-xl"></i>
             </button>
@@ -589,8 +600,10 @@
         let placesDatabase = [];
         let favorites = [];
         let featuredWeeklyPlaceId = null; 
+        
+        let currentModalPlaceId = null;
+        let isNavigating = false;
 
-        // 5 הגושים הראשיים
         const israelRegionsMap = {
             'אילת': ['אילת', 'eilat', 'יטבתה', 'ערבה'],
             'צפון': ['חיפה', 'צפון', 'קריון', 'קרית ביאליק', 'קרית מוצקין', 'קרית אתא', 'קרית ים', 'קריות', 'עכו', 'נהריה', 'כרמיאל', 'טבריה', 'צפת', 'עפולה', 'גליל', 'זכרון יעקב', 'חדרה', 'בנימינה', 'פרדס חנה', 'חריש', 'נשר', 'טירת כרמל', 'טירת הכרמל', 'tirat carmel'],
@@ -689,6 +702,18 @@
             }, 1200);
         });
 
+        window.addEventListener('popstate', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const placeId = urlParams.get('place');
+            if (placeId && placesDatabase.some(p => p.id === placeId)) {
+                isNavigating = true;
+                openPlaceDetails(placeId);
+                isNavigating = false;
+            } else {
+                executeCloseModalUI();
+            }
+        });
+
         function handleLogoClick() {
             activeCategory = 'all';
             activeCity = 'all';
@@ -762,11 +787,12 @@
                     if (seg.includes(`יום ${ds[d]}`) || seg.includes(`יום ${fds[d]}`) || seg.includes(fds[d])) return true;
                     if (new RegExp(`(?:^|[\\s:,-])${ds[d]}(?:[\\s:,-]|$)`).test(seg)) return true;
                 }
+                
                 if (d === 5) {
-                    if (seg.includes("ו") || seg.includes("שישי") || seg.includes("ערב שבת") || seg.includes("ושישי")) return true;
+                    if (seg.includes("שישי") || seg.includes("ערב שבת") || seg.includes("ושישי") || /(?:^|[\s,])ו(?:[\s,:-]|$)/.test(seg)) return true;
                 }
                 if (d === 6) {
-                    if (seg.includes("ש") || seg.includes("שבת") || seg.includes("מוצש")) return true;
+                    if (seg.includes("שבת") || seg.includes("מוצש") || /(?:^|[\s,])ש(?:[\s,:-]|$)/.test(seg)) return true;
                 }
                 return false;
             };
@@ -898,6 +924,16 @@
                 initMaps();
                 resolveCoordinatesForPlaces();
                 
+                setTimeout(() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const placeIdToOpen = urlParams.get('place');
+                    if (placeIdToOpen && placesDatabase.some(p => p.id === placeIdToOpen)) {
+                        isNavigating = true;
+                        openPlaceDetails(placeIdToOpen);
+                        isNavigating = false;
+                    }
+                }, 500);
+                
             } catch (error) {
                 console.error("Failed to load sheet data:", error);
                 showToast("⚠️ שגיאה בחיבור לשרת, טוען נתונים לדוגמה", "error");
@@ -992,6 +1028,7 @@
                 
                 featuredWeeklyPlaceId = featured.id;
                 
+                document.getElementById('weeklyFeaturedLink').href = `?place=${featured.id}`;
                 document.getElementById('weeklyFeaturedImage').src = featured.image;
                 document.getElementById('weeklyFeaturedName').innerText = featured.name;
                 document.getElementById('weeklyFeaturedRating').innerText = (featured.rating * 2).toFixed(1);
@@ -1033,7 +1070,7 @@
                 },
                 "telephone": place.phone,
                 "servesCuisine": cuisineType + ", כשרות: " + place.kosher,
-                "url": window.location.href
+                "url": window.location.origin + window.location.pathname + '?place=' + place.id
             };
             
             if (place.rating && place.user_ratings_total) {
@@ -1126,6 +1163,11 @@
                 `;
                 carousel.appendChild(card);
             });
+            
+            // תוקן 1: הוספת Spacer רחב יותר המבטיח שהפריט האחרון לא נחתך בגלילה רוחבית במובייל
+            const spacer = document.createElement('div');
+            spacer.className = "shrink-0 w-8 h-1 md:hidden";
+            carousel.appendChild(spacer);
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -1340,7 +1382,7 @@
                 card.className = "bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md border border-slate-100 flex flex-col transition-all duration-300 transform hover:-translate-y-1 relative cursor-pointer";
                 
                 card.onclick = (e) => {
-                    if (e.target.closest('.quick-action-btn') || e.target.closest('.fav-btn-container')) {
+                    if (e.target.closest('a') || e.target.closest('.quick-action-btn') || e.target.closest('.fav-btn-container')) {
                         return;
                     }
                     openPlaceDetails(place.id);
@@ -1352,7 +1394,7 @@
                         ? `${Math.round(place.calculatedDistance * 1000)} מ׳` 
                         : `${place.calculatedDistance.toFixed(1)} ק״מ`;
                     distanceMarkup = `
-                        <div class="absolute top-3 left-3 bg-brand-500 text-white font-extrabold px-2.5 py-1 rounded-full z-10 flex items-center gap-1 shadow-sm text-[10px]">
+                        <div class="absolute top-3 left-3 bg-brand-500 text-white font-extrabold px-2.5 py-1 rounded-full z-10 flex items-center gap-1 shadow-sm text-[10px] pointer-events-none">
                             <i class="fa-solid fa-location-dot text-white"></i>
                             <span>${distFormatted} ממך</span>
                         </div>
@@ -1369,8 +1411,11 @@
 
                 card.innerHTML = `
                     <div class="h-44 w-full bg-slate-100 relative overflow-hidden">
-                        <img src="${place.image}" alt="תמונה של מסעדת ${place.name}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+                        <!-- תוקן 2: קישור פנימי עם URL נכון ל-SEO -->
+                        <a href="?place=${place.id}" onclick="openPlaceDetails('${place.id}'); event.preventDefault();" class="block w-full h-full">
+                            <img src="${place.image}" alt="תמונה של מסעדת ${place.name}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+                        </a>
                         
                         <div class="absolute top-3 right-3 z-15 fav-btn-container">
                             <button onclick="toggleFavorite('${place.id}', event)" class="w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-rose-500 transition-colors shadow" aria-label="הוסף למועדפים">
@@ -1380,13 +1425,13 @@
 
                         ${distanceMarkup}
 
-                        <div class="absolute bottom-3 left-3 flex gap-1 z-10">
+                        <div class="absolute bottom-3 left-3 flex gap-1 z-10 pointer-events-none">
                             <span class="text-[9px] font-bold px-2 py-1 rounded-lg shadow-md border ${status.isOpen ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-rose-500 text-white border-rose-600'}">
                                 ${status.isOpen ? '● ' : '○ '}${status.text}
                             </span>
                         </div>
 
-                        <span class="absolute bottom-3 right-3 bg-brand-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow">
+                        <span class="absolute bottom-3 right-3 bg-brand-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow pointer-events-none">
                             ${place.category}
                         </span>
                     </div>
@@ -1394,7 +1439,12 @@
                     <div class="p-4 flex-1 flex flex-col justify-between text-right space-y-3">
                         <div>
                             <div class="flex items-start justify-between gap-1">
-                                <h3 class="font-extrabold text-slate-900 text-base leading-snug line-clamp-1">${place.name}</h3>
+                                <h3 class="font-extrabold text-slate-900 text-base leading-snug line-clamp-1">
+                                    <!-- תוקן 2: שם המסעדה מוגדר כקישור מפורש ל-SEO -->
+                                    <a href="?place=${place.id}" onclick="openPlaceDetails('${place.id}'); event.preventDefault();" class="hover:text-brand-500 transition-colors">
+                                        ${place.name}
+                                    </a>
+                                </h3>
                                 <div class="flex items-center gap-1.5 text-left shrink-0">
                                     <div class="text-right">
                                         <p class="text-[10px] font-bold text-slate-900 leading-none">${ratingLabel}</p>
@@ -1463,7 +1513,7 @@
                 
                 let matchA = trimmed.match(/^\[\s*([\d\s⭐★]+)\s*\]\s*([^:]+):\s*(.*)$/s);
                 let matchB = trimmed.match(/^([^[:[#-]+)\s*\[\s*([\d\s⭐★]+)\s*\]\s*:\s*(.*)$/s);
-                let matchC = trimmed.match(/^([^[:[#-]+)\s*\[\s*([\d\s⭐★]+)\s*\]\s*---\s*(.*)$/s);
+                let matchC = trimmed.match(/^([^[:[#-]+)\s*\[\s*([\d\s⭐★]+)\s*\]\s*--\s*(.*)$/s);
                 
                 if (matchA) {
                     starRating = extractDigits(matchA[1]);
@@ -1512,6 +1562,15 @@
         function openPlaceDetails(id) {
             const place = placesDatabase.find(p => p.id === id);
             if (!place) return;
+            
+            currentModalPlaceId = id;
+            if (!isNavigating) {
+                try {
+                    history.pushState({ modal: 'placeDetails' }, "", "?place=" + id);
+                } catch (e) {
+                    console.warn("History API not supported in this environment.");
+                }
+            }
 
             injectRestaurantSchema(place);
 
@@ -1807,21 +1866,42 @@
             updateSliderImage();
         }
 
-        function closeDetailsModal() {
+        function executeCloseModalUI() {
             const container = document.getElementById('detailPageContainer');
-            container.classList.add('pointer-events-none', 'opacity-0');
-            
-            document.body.classList.remove('overflow-hidden');
-            
-            const dynamicSchema = document.getElementById('dynamic-restaurant-schema');
-            if (dynamicSchema) {
-                dynamicSchema.remove();
+            if (container) {
+                container.classList.add('pointer-events-none', 'opacity-0');
+                document.body.classList.remove('overflow-hidden');
+                
+                const dynamicSchema = document.getElementById('dynamic-restaurant-schema');
+                if (dynamicSchema) {
+                    dynamicSchema.remove();
+                }
+                
+                setTimeout(() => {
+                    container.classList.add('hidden');
+                    container.classList.remove('flex');
+                }, 300);
             }
-            
-            setTimeout(() => {
-                container.classList.add('hidden');
-                container.classList.remove('flex');
-            }, 300);
+        }
+
+        function closeDetailsModal() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('place')) {
+                    if (history.state && history.state.modal === 'placeDetails') {
+                        history.back();
+                    } else {
+                        try {
+                            history.pushState(null, "", window.location.pathname);
+                        } catch (e) {}
+                        executeCloseModalUI();
+                    }
+                } else {
+                    executeCloseModalUI();
+                }
+            } catch (e) {
+                executeCloseModalUI();
+            }
         }
 
         function toggleFavoriteFromModal() {
@@ -1841,19 +1921,20 @@
         function shareRestaurant() {
             const name = document.getElementById('modalName').innerText;
             const address = document.getElementById('modalAddress').innerText;
+            const shareUrl = window.location.origin + window.location.pathname + '?place=' + currentModalPlaceId;
             const shareText = `היי, מצאתי מסעדה כשרה מעולה ב-KosherGo!\n📍 ${name}\n🗺️ כתובת: ${address}`;
             
             if (navigator.share) {
                 navigator.share({
                     title: `KosherGo - ${name}`,
                     text: shareText,
-                    url: window.location.href
+                    url: shareUrl
                 }).then(() => {
                     showToast("שותף בהצלחה!", "success");
                 }).catch((error) => console.log('Error sharing', error));
             } else {
                 const el = document.createElement('textarea');
-                el.value = `${shareText}\n${window.location.href}`;
+                el.value = `${shareText}\n${shareUrl}`;
                 document.body.appendChild(el);
                 el.select();
                 document.execCommand('copy');
