@@ -598,10 +598,8 @@
         </div>
     </div>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYki5wubNCKvTqM1qQEqcPlMzdpmstaas&libraries=places" async defer></script>
-
     <script>
-        const STEIN_API_URL = "https://api.steinhq.com/v1/storages/6a1b6b4692b1163e97fee042/רשימת מסעדות לסקריפט"; // עודכן ל-SteinHQ
+        const STEIN_API_URL = "https://api.steinhq.com/v1/storages/6a1b6b4692b1163e97fee042/רשימת מסעדות לסקריפט";
 
         let placesDatabase = [];
         let favorites = [];
@@ -609,6 +607,35 @@
         
         let currentModalPlaceId = null;
         let isNavigating = false;
+        
+        // --- מערכת Lazy Load למפות Google ---
+        let isGoogleMapsLoading = false;
+        let isGoogleMapsLoaded = false;
+
+        function loadGoogleMapsAPI() {
+            if (isGoogleMapsLoaded || isGoogleMapsLoading) return;
+            isGoogleMapsLoading = true;
+            
+            const script = document.createElement('script');
+            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBYki5wubNCKvTqM1qQEqcPlMzdpmstaas&libraries=places&callback=onGoogleMapsLoaded";
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+
+        window.onGoogleMapsLoaded = function() {
+            isGoogleMapsLoaded = true;
+            isGoogleMapsLoading = false;
+            if (placesDatabase.length > 0) {
+                initMaps();
+                resolveCoordinatesForPlaces();
+                renderPlaces(); 
+            }
+            if (isGeoActive && userCoords) {
+                requestUserLocation(true); 
+            }
+        };
+        // ------------------------------------
 
         const israelRegionsMap = {
             'אילת': ['אילת', 'eilat', 'יטבתה', 'ערבה'],
@@ -706,6 +733,20 @@
             setTimeout(() => {
                 requestUserLocation(true);
             }, 1200);
+
+            // הפעלת מעקב IntersectionObserver לטעינת המפה
+            const mapSection = document.getElementById('desktopMapSection');
+            if (mapSection) {
+                const mapObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            loadGoogleMapsAPI();
+                            observer.disconnect();
+                        }
+                    });
+                }, { rootMargin: "300px" });
+                mapObserver.observe(mapSection);
+            }
         });
 
         window.addEventListener('popstate', (event) => {
@@ -948,8 +989,11 @@
                 sanitizeFavorites();
                 renderPlaces();
                 updateWeeklyFeatured();
-                initMaps();
-                resolveCoordinatesForPlaces();
+                
+                if (isGoogleMapsLoaded) {
+                    initMaps();
+                    resolveCoordinatesForPlaces();
+                }
                 
                 checkDeepLink(); 
                 
@@ -998,8 +1042,11 @@
             sanitizeFavorites();
             renderPlaces();
             updateWeeklyFeatured();
-            initMaps();
-            resolveCoordinatesForPlaces();
+            
+            if (isGoogleMapsLoaded) {
+                initMaps();
+                resolveCoordinatesForPlaces();
+            }
             
             checkDeepLink(); 
         }
@@ -1242,6 +1289,10 @@
                 document.getElementById('locationBtnText'),
                 document.getElementById('bookingGeoText')
             ];
+            
+            if (!isAutoPrompt) {
+                loadGoogleMapsAPI(); // נטעין את המפה אם המשתמש לחץ באופן יזום
+            }
 
             try {
                 if (!navigator.geolocation) {
@@ -1578,6 +1629,8 @@
         }
 
         function openPlaceDetails(id) {
+            loadGoogleMapsAPI(); // נטעין את המפות אם הן עדיין לא נטענו
+            
             const place = placesDatabase.find(p => p.id === id);
             if (!place) return;
             
@@ -1641,7 +1694,13 @@
 
             renderRelatedPlaces(place);
 
-            if (typeof google !== 'undefined') {
+            // יצירת המפה הקטנה בעזרת מנגנון המתנה (פולר)
+            function tryInitModalMap() {
+                if (typeof google === 'undefined') {
+                    setTimeout(tryInitModalMap, 200);
+                    return;
+                }
+                
                 if (!detailModalMapInstance) {
                     detailModalMapInstance = new google.maps.Map(document.getElementById('modalSpecificMap'), {
                         zoom: 16,
@@ -1696,8 +1755,9 @@
                         }
                         window.userMarkerDetail.setPosition(userCoords);
                     }
-                }, 350);
+                }, 100);
             }
+            tryInitModalMap();
 
             const reviewsContainer = document.getElementById('modalReviewsContainer');
             reviewsContainer.innerHTML = '';
@@ -2189,12 +2249,19 @@
         }
 
         function focusOnMapAndCenter(id) {
+            loadGoogleMapsAPI(); // נטעין אם המשתמש רוצה לצפות במפה דרך כפתור זה
+            
             const place = placesDatabase.find(p => p.id === id);
             if (!place) return;
 
             if (window.innerWidth >= 768) {
                 document.getElementById('desktopMapSection').scrollIntoView({ behavior: 'smooth' });
-                if (desktopMapInstance) {
+                
+                function tryFocusDesktop() {
+                    if (typeof google === 'undefined' || !desktopMapInstance) {
+                        setTimeout(tryFocusDesktop, 200);
+                        return;
+                    }
                     desktopMapInstance.setCenter(place.coords);
                     desktopMapInstance.setZoom(15);
                     const dMarker = desktopMarkers.find(m => m.placeId === id);
@@ -2202,9 +2269,16 @@
                         google.maps.event.trigger(dMarker, 'click');
                     }
                 }
+                tryFocusDesktop();
+                
             } else {
                 switchMobileTab('map');
-                if (mobileMapInstance) {
+                
+                function tryFocusMobile() {
+                    if (typeof google === 'undefined' || !mobileMapInstance) {
+                        setTimeout(tryFocusMobile, 200);
+                        return;
+                    }
                     mobileMapInstance.setCenter(place.coords);
                     mobileMapInstance.setZoom(15);
                     const mMarker = mobileMarkers.find(m => m.placeId === id);
@@ -2212,6 +2286,7 @@
                         google.maps.event.trigger(mMarker, 'click');
                     }
                 }
+                tryFocusMobile();
             }
             showToast(`🗺️ מתמקד ב: ${place.name}`, "success");
         }
@@ -2250,21 +2325,26 @@
                 tabSearchBtn.classList.add('text-slate-400');
                 tabSearchBtn.classList.remove('text-brand-500');
                 
-                setTimeout(() => {
-                    if (mobileMapInstance && typeof google !== 'undefined') {
-                        google.maps.event.trigger(mobileMapInstance, 'resize');
-                        
-                        let targetCenter = { lat: 32.7610, lng: 34.9702 }; 
-                        if (userCoords) {
-                            targetCenter = userCoords;
-                        } else if (placesDatabase.length > 0) {
-                            targetCenter = placesDatabase[0].coords;
-                        }
-                        
-                        mobileMapInstance.setCenter(targetCenter);
-                        mobileMapInstance.setZoom(14);
+                loadGoogleMapsAPI(); // נטעין את המפה כשנכנסים למסך מפה במובייל
+                
+                function tryResizeMobileMap() {
+                    if (typeof google === 'undefined' || !mobileMapInstance) {
+                        setTimeout(tryResizeMobileMap, 200);
+                        return;
                     }
-                }, 100);
+                    google.maps.event.trigger(mobileMapInstance, 'resize');
+                    
+                    let targetCenter = { lat: 32.7610, lng: 34.9702 }; 
+                    if (userCoords) {
+                        targetCenter = userCoords;
+                    } else if (placesDatabase.length > 0) {
+                        targetCenter = placesDatabase[0].coords;
+                    }
+                    
+                    mobileMapInstance.setCenter(targetCenter);
+                    mobileMapInstance.setZoom(14);
+                }
+                tryResizeMobileMap();
             }
         }
 
