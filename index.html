@@ -39,7 +39,7 @@
             box-sizing: border-box;
         }
         
-        /* תוקן: הוספת overflow-x: hidden גם ל-html כדי למנוע יציאה מגבולות המסך במובייל (במיוחד ב-iOS) */
+        /* תוקן: שינוי מ-hidden ל-clip כדי למנוע חיתוך צד בלי לשבור את ה-position: sticky במובייל */
         html {
             font-family: 'Rubik', sans-serif !important;
             max-width: 100%;
@@ -48,7 +48,7 @@
             padding: 0;
             background-color: #fcfdfe;
             -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden; 
+            overflow-x: clip; 
         }
         body {
             font-family: 'Rubik', sans-serif !important;
@@ -57,7 +57,7 @@
             margin: 0;
             padding: 0;
             background-color: #fcfdfe;
-            overflow-x: hidden; 
+            overflow-x: clip; 
             -webkit-overflow-scrolling: touch; 
         }
         
@@ -263,53 +263,58 @@
         </div>
     </section>
 
-    <section class="max-w-7xl mx-auto py-6">
-        <div class="px-4 sm:px-6 lg:px-8 flex items-center justify-between mb-3">
-            <h2 class="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-tags wolt-text-cyan"></i>
-                <span>קטגוריות פופולריות</span>
-            </h2>
-            <span class="text-xs text-slate-400 font-bold">החליקו ימינה/שמאלה <i class="fa-solid fa-arrows-left-right"></i></span>
-        </div>
-        <div class="flex gap-3 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 no-scrollbar w-full" id="categoryCarousel"></div>
-    </section>
-
-    <section class="bg-white border-y border-slate-100 sticky-filters shadow-sm py-2.5">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 w-full">
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap" style="scrollbar-width: none;">
-                
-                <button onclick="toggleFilterChip('mehadrinOnly')" id="chip-mehadrinOnly" 
-                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
-                    <i class="fa-solid fa-stamp text-amber-500"></i>
-                    <span>למהדרין בלבד</span>
-                </button>
-
-                <button onclick="toggleFilterChip('openNow')" id="chip-openNow" 
-                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
-                    <i class="fa-solid fa-clock text-emerald-500"></i>
-                    <span>פתוח עכשיו</span>
-                </button>
-
-                <button onclick="toggleFilterChip('meatOnly')" id="chip-meatOnly" 
-                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
-                    <i class="fa-solid fa-drumstick-bite text-orange-500"></i>
-                    <span>בשרי 🥩</span>
-                </button>
-
-                <button onclick="toggleFilterChip('dairyOnly')" id="chip-dairyOnly" 
-                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
-                    <i class="fa-solid fa-cheese text-yellow-500"></i>
-                    <span>חלבי 🧀</span>
-                </button>
-
+    <div class="sticky-filters bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm w-full transition-all duration-300">
+        
+        <section class="max-w-7xl mx-auto pt-3 pb-1 border-b border-slate-50/50">
+            <div class="px-4 sm:px-6 lg:px-8 flex items-center justify-between mb-2">
+                <h2 class="text-base md:text-lg font-black text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-tags wolt-text-cyan"></i>
+                    <span>קטגוריות פופולריות</span>
+                </h2>
+                <span class="text-[10px] md:text-xs text-slate-400 font-bold">החליקו ימינה/שמאלה <i class="fa-solid fa-arrows-left-right"></i></span>
             </div>
-            
-            <button onclick="resetFilters()" class="text-xs font-bold wolt-text-cyan hover:text-brand-600 flex items-center gap-1 shrink-0 py-1.5 px-3 hover:bg-brand-50 rounded-full transition-colors">
-                <i class="fa-solid fa-arrow-rotate-left"></i>
-                <span>איפוס</span>
-            </button>
-        </div>
-    </section>
+            <div class="flex gap-2.5 overflow-x-auto pb-2 px-4 sm:px-6 lg:px-8 no-scrollbar w-full snap-x snap-mandatory" id="categoryCarousel"></div>
+        </section>
+
+        <section class="py-2">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 w-full">
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap snap-x snap-mandatory" style="scrollbar-width: none;">
+                    
+                    <button onclick="toggleFilterChip('mehadrinOnly')" id="chip-mehadrinOnly" 
+                            class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        <i class="fa-solid fa-stamp text-amber-500"></i>
+                        <span>למהדרין בלבד</span>
+                    </button>
+
+                    <button onclick="toggleFilterChip('openNow')" id="chip-openNow" 
+                            class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        <i class="fa-solid fa-clock text-emerald-500"></i>
+                        <span>פתוח עכשיו</span>
+                    </button>
+
+                    <button onclick="toggleFilterChip('meatOnly')" id="chip-meatOnly" 
+                            class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        <i class="fa-solid fa-drumstick-bite text-orange-500"></i>
+                        <span>בשרי 🥩</span>
+                    </button>
+
+                    <button onclick="toggleFilterChip('dairyOnly')" id="chip-dairyOnly" 
+                            class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        <i class="fa-solid fa-cheese text-yellow-500"></i>
+                        <span>חלבי 🧀</span>
+                    </button>
+
+                    <div class="shrink-0 w-2 md:w-4 h-1 bg-transparent pointer-events-none"></div>
+
+                </div>
+                
+                <button onclick="resetFilters()" class="text-xs font-bold wolt-text-cyan hover:text-brand-600 flex items-center gap-1 shrink-0 py-1.5 px-3 hover:bg-brand-50 rounded-full transition-colors bg-white border border-slate-100 shadow-sm">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                    <span>איפוס</span>
+                </button>
+            </div>
+        </section>
+    </div>
 
     <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
         
@@ -1167,7 +1172,8 @@
                 const isActive = activeCategory === catKey;
 
                 const card = document.createElement('button');
-                card.className = `shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl border font-bold text-xs md:text-sm transition-all duration-200 ${
+                // הוספת snap-start למגנוט חלק בזמן גלילה
+                card.className = `shrink-0 snap-start flex items-center gap-2 px-5 py-3 rounded-2xl border font-bold text-xs md:text-sm transition-all duration-200 ${
                     isActive ? 'bg-brand-500 text-white border-brand-500 shadow-md scale-105' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`;
                 card.onclick = () => {
@@ -1184,9 +1190,9 @@
                 carousel.appendChild(card);
             });
             
-            // תוקן: רוחב מוקטן למרווח תקין ב-RTL (מבטיח שהכפתור האחרון ייראה)
+            // תוקן: מרווח מוגדל ושקוף ב-RTL כדי להבטיח שהכפתור האחרון (בתי קפה) לעולם לא ייחתך בסוף הגלילה במובייל
             const spacer = document.createElement('div');
-            spacer.className = "shrink-0 w-6 h-1 md:hidden";
+            spacer.className = "shrink-0 w-8 h-1 bg-transparent pointer-events-none";
             carousel.appendChild(spacer);
         }
 
