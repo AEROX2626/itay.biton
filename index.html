@@ -62,6 +62,11 @@
         
         #detailPageContainer {
             -webkit-overflow-scrolling: touch; 
+            overscroll-behavior-y: contain;
+        }
+
+        #modalGalleryContainer, #relatedPlacesContainer {
+            touch-action: pan-x pan-y;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -551,7 +556,7 @@
                 <section>
                     <h3 class="text-sm font-black text-slate-950 border-b border-slate-100 pb-2 mb-3 flex items-center gap-2">
                         <i class="fa-solid fa-utensils wolt-text-cyan"></i>
-                        <span>עוד מסעדות קשורות באזור</span>
+                        <span>עוד מסעדות באזור עבורך</span>
                     </h3>
                     <div id="relatedPlacesContainer" class="flex gap-3 overflow-x-auto pb-2 no-scrollbar scroll-smooth"></div>
                 </section>
@@ -636,6 +641,11 @@
             }
         };
         // ------------------------------------
+
+        // פונקציית עזר ליצירת Slug משם המסעדה לטובת המיני-סייט
+        function generateSlug(name) {
+            return name.trim().replace(/\s+/g, '-').replace(/[^\wא-ת-]/g, '').replace(/-+/g, '-');
+        }
 
         const israelRegionsMap = {
             'אילת': ['אילת', 'eilat', 'יטבתה', 'ערבה'],
@@ -751,11 +761,17 @@
 
         window.addEventListener('popstate', (event) => {
             const urlParams = new URLSearchParams(window.location.search);
-            const placeId = urlParams.get('place');
-            if (placeId && placesDatabase.some(p => p.id === placeId)) {
-                isNavigating = true;
-                openPlaceDetails(placeId);
-                isNavigating = false;
+            const placeParam = urlParams.get('place');
+            
+            if (placeParam) {
+                const placeToOpen = placesDatabase.find(p => p.id === placeParam || p.slug === placeParam || encodeURIComponent(p.name) === placeParam);
+                if (placeToOpen) {
+                    isNavigating = true;
+                    openPlaceDetails(placeToOpen.id);
+                    isNavigating = false;
+                } else {
+                    executeCloseModalUI();
+                }
             } else {
                 executeCloseModalUI();
             }
@@ -937,11 +953,14 @@
         function checkDeepLink() {
             setTimeout(() => {
                 const urlParams = new URLSearchParams(window.location.search);
-                const placeIdToOpen = urlParams.get('place');
-                if (placeIdToOpen && placesDatabase.some(p => p.id === placeIdToOpen)) {
-                    isNavigating = true;
-                    openPlaceDetails(placeIdToOpen);
-                    isNavigating = false;
+                const placeParam = urlParams.get('place');
+                if (placeParam) {
+                    const placeToOpen = placesDatabase.find(p => p.id === placeParam || p.slug === placeParam || encodeURIComponent(p.name) === placeParam);
+                    if (placeToOpen) {
+                        isNavigating = true;
+                        openPlaceDetails(placeToOpen.id);
+                        isNavigating = false;
+                    }
                 }
             }, 200);
         }
@@ -958,6 +977,7 @@
                     return {
                         id: item.place_id || `place-${index}`,
                         name: item.name || 'מסעדה כשרה',
+                        slug: generateSlug(item.name || 'מסעדה כשרה'),
                         address: cleanAddress(item.address || 'ישראל'),
                         city: placeCity,
                         category: item.category || 'מסעדה',
@@ -1034,8 +1054,8 @@
 
         function loadFallbackMockData() {
             const mockData = [
-                { id: 'mock-1', name: 'סטקיית העיר טירת כרמל', city: 'צפון', address: cleanAddress('משה שרת 4, טירת כרמל'), category: 'מסעדה', phone: '04-8576433', description: 'חווית בשרים אותנטית.', hours: "ימים א'-ה': 11:30 - 23:00, ו': 11:30 - 15:30, ש': סגור", rating: 4.8, user_ratings_total: 421, milk_meat: 'בשרי 🥩', website: 'https://waze.com/ul?q=משה+שרת+4+טירת+כרמל', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', kosher: 'כשר למהדרין', reviews: 'בשר איכותי מאוד!|הסלטים הכי טעימים שיש|שירות פשוט מהיר ומפנק', coords: { lat: 32.7610, lng: 34.9702 }, gallery: ['https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80'] },
-                { id: 'mock-2', name: 'קפה ביער - עגלת קפה פסטורלית', city: 'שרון', address: cleanAddress('יער קדימה, השרון'), category: 'עגלת קפה', phone: '052-8765431', description: 'קסם ביער קדימה.', hours: "ימים א'-ה': 07:30 - 17:00, ו': 07:30 - 15:00, ש': סגור", rating: 4.9, user_ratings_total: 180, milk_meat: 'חלבי 🧀', website: 'https://waze.com/ul?q=יער+קדימה', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80', kosher: 'כשר למהדרין', reviews: 'פינה קסומה ביער|מאפי שמרים מעולם אחר|כיף גדול לילדים', coords: { lat: 32.2844, lng: 34.8908 }, gallery: ['https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1447078806655-40579c2520d6?auto=format&fit=crop&w=800&q=80'] }
+                { id: 'mock-1', name: 'סטקיית העיר טירת כרמל', slug: generateSlug('סטקיית העיר טירת כרמל'), city: 'צפון', address: cleanAddress('משה שרת 4, טירת כרמל'), category: 'מסעדה', phone: '04-8576433', description: 'חווית בשרים אותנטית.', hours: "ימים א'-ה': 11:30 - 23:00, ו': 11:30 - 15:30, ש': סגור", rating: 4.8, user_ratings_total: 421, milk_meat: 'בשרי 🥩', website: 'https://waze.com/ul?q=משה+שרת+4+טירת+כרמל', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', kosher: 'כשר למהדרין', reviews: 'בשר איכותי מאוד!|הסלטים הכי טעימים שיש|שירות פשוט מהיר ומפנק', coords: { lat: 32.7610, lng: 34.9702 }, gallery: ['https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80'] },
+                { id: 'mock-2', name: 'קפה ביער - עגלת קפה פסטורלית', slug: generateSlug('קפה ביער - עגלת קפה פסטורלית'), city: 'שרון', address: cleanAddress('יער קדימה, השרון'), category: 'עגלת קפה', phone: '052-8765431', description: 'קסם ביער קדימה.', hours: "ימים א'-ה': 07:30 - 17:00, ו': 07:30 - 15:00, ש': סגור", rating: 4.9, user_ratings_total: 180, milk_meat: 'חלבי 🧀', website: 'https://waze.com/ul?q=יער+קדימה', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80', kosher: 'כשר למהדרין', reviews: 'פינה קסומה ביער|מאפי שמרים מעולם אחר|כיף גדול לילדים', coords: { lat: 32.2844, lng: 34.8908 }, gallery: ['https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1447078806655-40579c2520d6?auto=format&fit=crop&w=800&q=80'] }
             ];
             placesDatabase = mockData;
             sanitizeAndFixRegions(); 
@@ -1096,7 +1116,7 @@
                 
                 featuredWeeklyPlaceId = featured.id;
                 
-                document.getElementById('weeklyFeaturedLink').href = `?place=${featured.id}`;
+                document.getElementById('weeklyFeaturedLink').href = `?place=${featured.slug}`;
                 document.getElementById('weeklyFeaturedImage').src = featured.image;
                 document.getElementById('weeklyFeaturedName').innerText = featured.name;
                 document.getElementById('weeklyFeaturedRating').innerText = (featured.rating * 2).toFixed(1);
@@ -1138,7 +1158,7 @@
                 },
                 "telephone": place.phone,
                 "servesCuisine": cuisineType + ", כשרות: " + place.kosher,
-                "url": window.location.origin + window.location.pathname + '?place=' + place.id
+                "url": window.location.origin + window.location.pathname + '?place=' + (place.slug || place.id)
             };
             
             if (place.rating && place.user_ratings_total) {
@@ -1482,7 +1502,7 @@
 
                 card.innerHTML = `
                     <div class="h-44 w-full bg-slate-100 relative overflow-hidden">
-                        <a href="?place=${place.id}" onclick="openPlaceDetails('${place.id}'); event.preventDefault();" class="block w-full h-full">
+                        <a href="?place=${place.slug}" onclick="openPlaceDetails('${place.id}'); event.preventDefault();" class="block w-full h-full">
                             <img src="${place.image}" alt="תמונה של מסעדת ${place.name}" class="w-full h-full object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
                         </a>
@@ -1510,7 +1530,7 @@
                         <div>
                             <div class="flex items-start justify-between gap-1">
                                 <h3 class="font-extrabold text-slate-900 text-base leading-snug line-clamp-1">
-                                    <a href="?place=${place.id}" onclick="openPlaceDetails('${place.id}'); event.preventDefault();" class="hover:text-brand-500 transition-colors">
+                                    <a href="?place=${place.slug}" onclick="openPlaceDetails('${place.id}'); event.preventDefault();" class="hover:text-brand-500 transition-colors">
                                         ${place.name}
                                     </a>
                                 </h3>
@@ -1637,7 +1657,7 @@
             currentModalPlaceId = id;
             if (!isNavigating) {
                 try {
-                    history.pushState({ modal: 'placeDetails' }, "", "?place=" + id);
+                    history.pushState({ modal: 'placeDetails' }, "", "?place=" + (place.slug || place.id));
                 } catch (e) {
                     console.warn("History API not supported in this environment.");
                 }
@@ -1707,7 +1727,7 @@
                         mapTypeControl: false,
                         streetViewControl: false,
                         fullscreenControl: true,
-                        gestureHandling: 'greedy',
+                        gestureHandling: 'cooperative', // מתקן את התקיעה של הגלילה במובייל!
                         zoomControl: true 
                     });
                     detailModalMarker = new google.maps.Marker({
@@ -1838,7 +1858,7 @@
             container.classList.remove('hidden');
             container.classList.add('flex');
             
-            container.scrollTop = 0;
+            container.scrollTo({ top: 0, behavior: 'smooth' }); // תיקון החלקה לראש העמוד בעת פתיחה או מעבר ממסעדה קשורה
             
             document.body.classList.add('overflow-hidden');
             
@@ -1867,13 +1887,23 @@
             const container = document.getElementById('relatedPlacesContainer');
             container.innerHTML = '';
 
-            let related = placesDatabase.filter(p => 
-                p.id !== currentPlace.id && 
-                (p.city === currentPlace.city || p.category === currentPlace.category || p.milk_meat === currentPlace.milk_meat)
-            );
+            let related = placesDatabase.filter(p => p.id !== currentPlace.id);
 
-            related = related.slice(0, 6);
+            // מיון לפי מרחק: אל המשתמש אם פעיל, אחרת אל המסעדה הנוכחית
+            const refLat = (isGeoActive && userCoords) ? userCoords.lat : currentPlace.coords.lat;
+            const refLng = (isGeoActive && userCoords) ? userCoords.lng : currentPlace.coords.lng;
 
+            related.forEach(p => {
+                if (p.coords) {
+                    p.tempDist = calculateDistance(refLat, refLng, p.coords.lat, p.coords.lng);
+                } else {
+                    p.tempDist = 9999;
+                }
+            });
+
+            related.sort((a, b) => a.tempDist - b.tempDist);
+
+            // סליידר ללא הגבלה - מציג את כל המסעדות
             if (related.length === 0) {
                 container.innerHTML = `<div class="p-3 text-slate-400 text-xs">אין מסעדות נוספות להמליץ באזור זה</div>`;
                 return;
@@ -1886,7 +1916,7 @@
                 item.className = "shrink-0 w-44 bg-slate-50 rounded-2xl p-2 border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer";
                 item.onclick = () => {
                     openPlaceDetails(place.id);
-                    document.getElementById('detailPageContainer').scrollTo({ top: 0, behavior: 'smooth' });
+                    // גלילה חלקה מעלה מופעלת כבר בתוך openPlaceDetails
                 };
 
                 item.innerHTML = `
@@ -2001,7 +2031,10 @@
         function shareRestaurant() {
             const name = document.getElementById('modalName').innerText;
             const address = document.getElementById('modalAddress').innerText;
-            const shareUrl = window.location.origin + window.location.pathname + '?place=' + currentModalPlaceId;
+            
+            const place = placesDatabase.find(p => p.id === currentModalPlaceId);
+            const slugOrId = place && place.slug ? place.slug : currentModalPlaceId;
+            const shareUrl = window.location.origin + window.location.pathname + '?place=' + slugOrId;
             const shareText = `היי, מצאתי מסעדה כשרה מעולה ב-KosherGo!\n📍 ${name}\n🗺️ כתובת: ${address}`;
             
             if (navigator.share) {
