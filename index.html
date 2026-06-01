@@ -275,12 +275,12 @@
             </h2>
             <span class="text-xs text-slate-400 font-bold">החליקו ימינה/שמאלה <i class="fa-solid fa-arrows-left-right"></i></span>
         </div>
-        <div class="flex gap-2.5 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 no-scrollbar w-full snap-x snap-mandatory" id="categoryCarousel"></div>
+        <div class="flex gap-2.5 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 no-scrollbar w-full snap-x" id="categoryCarousel"></div>
     </section>
 
     <section class="sticky-filters bg-white/95 backdrop-blur-md border-y border-slate-100 shadow-sm py-2 z-90 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 w-full">
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap snap-x snap-mandatory" style="scrollbar-width: none;">
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap snap-x" style="scrollbar-width: none;">
                 
                 <button onclick="toggleFilterChip('mehadrinOnly')" id="chip-mehadrinOnly" 
                         class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
@@ -306,7 +306,7 @@
                     <span>חלבי 🧀</span>
                 </button>
 
-                <div class="shrink-0 w-2 md:w-4 h-1 bg-transparent pointer-events-none"></div>
+                <div class="shrink-0 w-8 md:w-12 h-1 bg-transparent pointer-events-none"></div>
 
             </div>
             
@@ -576,8 +576,11 @@
                     <button onclick="toggleFavoritesPanel(false)" class="text-slate-100 hover:text-white p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar bg-[#f5f7fa]" id="favoritesListContainer"></div>
-                <div class="p-4 border-t border-slate-150 bg-white shrink-0">
-                    <button onclick="toggleFavoritesPanel(false)" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-colors">
+                <div class="p-4 border-t border-slate-150 bg-white shrink-0 flex gap-2">
+                    <button onclick="showFavoritesOnMap()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-map-location-dot"></i> הצג במפה
+                    </button>
+                    <button onclick="toggleFavoritesPanel(false)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-colors">
                         סגירת רשימה
                     </button>
                 </div>
@@ -612,6 +615,7 @@
         
         let currentModalPlaceId = null;
         let isNavigating = false;
+        let isShowingFavoritesOnly = false; // משתנה גלובלי להצגת מועדפים במפה
         
         // --- מערכת Lazy Load למפות Google ---
         let isGoogleMapsLoading = false;
@@ -633,7 +637,6 @@
             isGoogleMapsLoading = false;
             if (placesDatabase.length > 0) {
                 initMaps();
-                // פונקציית הטעינה היקרה (Geocoding) הוסרה מכאן
                 renderPlaces(); 
             }
             if (isGeoActive && userCoords) {
@@ -744,7 +747,6 @@
                 requestUserLocation(true);
             }, 1200);
 
-            // הפעלת מעקב IntersectionObserver לטעינת המפה
             const mapSection = document.getElementById('desktopMapSection');
             if (mapSection) {
                 const mapObserver = new IntersectionObserver((entries, observer) => {
@@ -795,7 +797,7 @@
                 const chipBtn = document.getElementById(`chip-${key}`);
                 if (chipBtn) {
                     chipBtn.classList.remove('bg-brand-500', 'text-white', 'border-brand-500');
-                    chipBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+                    chipBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50');
                 }
             });
 
@@ -975,7 +977,6 @@
                 placesDatabase = data.map((item, index) => {
                     const placeCity = item.city || detectCityFromAddress(item.address) || 'מרכז';
                     
-                    // משיכת הקואורדינטות ישירות מהשיטס במקום לפנות ל-Google API
                     let parsedCoords = null;
                     if (item.coordinates && typeof item.coordinates === 'string' && item.coordinates.includes(',')) {
                         const parts = item.coordinates.split(',');
@@ -1211,11 +1212,11 @@
             const chipBtn = document.getElementById(`chip-${chipKey}`);
             
             if (filters[chipKey]) {
-                chipBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+                chipBtn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50');
                 chipBtn.classList.add('bg-brand-500', 'text-white', 'border-brand-500');
             } else {
                 chipBtn.classList.remove('bg-brand-500', 'text-white', 'border-brand-500');
-                chipBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+                chipBtn.classList.add('bg-white', 'text-slate-700', 'border-slate-200', 'hover:bg-slate-50');
             }
 
             if (chipKey === 'meatOnly' && filters.meatOnly) {
@@ -1261,7 +1262,7 @@
             });
             
             const spacer = document.createElement('div');
-            spacer.className = "shrink-0 w-8 h-1 bg-transparent pointer-events-none";
+            spacer.className = "shrink-0 w-12 h-1 bg-transparent pointer-events-none";
             carousel.appendChild(spacer);
         }
 
@@ -1388,7 +1389,46 @@
             renderPlaces();
         }
 
+        function showFavoritesOnMap() {
+            const favPlaces = placesDatabase.filter(p => favorites.includes(p.id));
+            if(favPlaces.length === 0) {
+                showToast("אין מועדפים להצגה במפה", "warning");
+                return;
+            }
+            toggleFavoritesPanel(false);
+            isShowingFavoritesOnly = true;
+            showToast("מציג את המועדפים שלך במפה", "success");
+            
+            updateMapsMarkers(favPlaces);
+            
+            if (window.innerWidth >= 768) {
+                document.getElementById('desktopMapSection').scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => fitMapToBounds(favPlaces), 300);
+            } else {
+                switchMobileTab('map');
+                setTimeout(() => fitMapToBounds(favPlaces), 300);
+            }
+        }
+
+        function fitMapToBounds(placesList) {
+            if (typeof google === 'undefined' || placesList.length === 0) return;
+            const bounds = new google.maps.LatLngBounds();
+            placesList.forEach(p => {
+                if (p.coords) bounds.extend(p.coords);
+            });
+            
+            if (window.innerWidth >= 768 && desktopMapInstance) {
+                desktopMapInstance.fitBounds(bounds);
+                if (desktopMapInstance.getZoom() > 16) desktopMapInstance.setZoom(16);
+            } else if (mobileMapInstance) {
+                mobileMapInstance.fitBounds(bounds);
+                if (mobileMapInstance.getZoom() > 16) mobileMapInstance.setZoom(16);
+            }
+        }
+
         function renderPlaces() {
+            isShowingFavoritesOnly = false; // איפוס תצוגת מפה כללית
+            
             const grid = document.getElementById('placesGrid');
             const counter = document.getElementById('resultsCounter');
             const noResults = document.getElementById('noResultsState');
@@ -1621,7 +1661,7 @@
         }
 
         function openPlaceDetails(id) {
-            loadGoogleMapsAPI(); // נטעין את המפות אם הן עדיין לא נטענו
+            loadGoogleMapsAPI(); 
             
             const place = placesDatabase.find(p => p.id === id);
             if (!place) return;
@@ -1686,7 +1726,6 @@
 
             renderRelatedPlaces(place);
 
-            // יצירת המפה הקטנה בעזרת מנגנון המתנה (פולר)
             function tryInitModalMap() {
                 if (typeof google === 'undefined') {
                     setTimeout(tryInitModalMap, 200);
@@ -2040,7 +2079,19 @@
             
             localStorage.setItem('kosher_favorites', JSON.stringify(favorites));
             sanitizeFavorites(); 
-            renderPlaces();
+            
+            // עדכון המפה בזמן אמת במידה ואנו במצב מועדפים במפה
+            if (isShowingFavoritesOnly) {
+                const favPlaces = placesDatabase.filter(p => favorites.includes(p.id));
+                updateMapsMarkers(favPlaces);
+                if(favPlaces.length === 0) {
+                    isShowingFavoritesOnly = false;
+                    renderPlaces();
+                }
+            } else {
+                renderPlaces();
+            }
+            
             renderFavoritesList();
         }
 
@@ -2195,6 +2246,22 @@
 
             placesList.forEach(place => {
                 const status = getOpenStatus(place.hours);
+                const isFav = favorites.includes(place.id);
+                
+                let customIcon = null;
+                // סמנים בצורת כוכב למסעדות שבמועדפים
+                if (isFav) {
+                    customIcon = {
+                        path: 'M 12 2.1 L 15.09 8.36 L 22 9.37 L 17 14.24 L 18.18 21.12 L 12 17.87 L 5.82 21.12 L 7 14.24 L 2 9.37 L 8.91 8.36 Z',
+                        fillColor: '#fbbf24', // זהב-מועדפים
+                        fillOpacity: 1,
+                        strokeColor: '#b45309',
+                        strokeWeight: 1.5,
+                        scale: 1.5,
+                        anchor: new google.maps.Point(12, 12)
+                    };
+                }
+
                 const markerHtml = `
                     <div class="p-2 text-right" style="direction: rtl; font-family: 'Rubik', sans-serif;">
                         <img src="${place.image}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 6px;">
@@ -2217,11 +2284,13 @@
                 });
 
                 if (desktopMapInstance) {
-                    const dMarker = new google.maps.Marker({
+                    const mOptions = {
                         position: place.coords,
                         map: desktopMapInstance,
                         title: place.name
-                    });
+                    };
+                    if (customIcon) mOptions.icon = customIcon;
+                    const dMarker = new google.maps.Marker(mOptions);
                     
                     dMarker.placeId = place.id;
 
@@ -2233,11 +2302,13 @@
                 }
 
                 if (mobileMapInstance) {
-                    const mMarker = new google.maps.Marker({
+                    const mOptions = {
                         position: place.coords,
                         map: mobileMapInstance,
                         title: place.name
-                    });
+                    };
+                    if (customIcon) mOptions.icon = customIcon;
+                    const mMarker = new google.maps.Marker(mOptions);
                     
                     mMarker.placeId = place.id;
 
@@ -2251,7 +2322,7 @@
         }
 
         function focusOnMapAndCenter(id) {
-            loadGoogleMapsAPI(); // נטעין אם המשתמש רוצה לצפות במפה דרך כפתור זה
+            loadGoogleMapsAPI(); 
             
             const place = placesDatabase.find(p => p.id === id);
             if (!place) return;
@@ -2327,7 +2398,7 @@
                 tabSearchBtn.classList.add('text-slate-400');
                 tabSearchBtn.classList.remove('text-brand-500');
                 
-                loadGoogleMapsAPI(); // נטעין את המפה כשנכנסים למסך מפה במובייל
+                loadGoogleMapsAPI(); 
                 
                 function tryResizeMobileMap() {
                     if (typeof google === 'undefined' || !mobileMapInstance) {
@@ -2343,8 +2414,10 @@
                         targetCenter = placesDatabase[0].coords;
                     }
                     
-                    mobileMapInstance.setCenter(targetCenter);
-                    mobileMapInstance.setZoom(14);
+                    if (!isShowingFavoritesOnly) {
+                        mobileMapInstance.setCenter(targetCenter);
+                        mobileMapInstance.setZoom(14);
+                    }
                 }
                 tryResizeMobileMap();
             }
