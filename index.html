@@ -143,7 +143,7 @@
 
     <div id="toastContainer" class="fixed top-5 left-0 right-0 mx-auto md:right-auto md:left-5 z-[200] flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm pointer-events-none"></div>
 
-    <div class="bg-brand-500 text-white text-center py-2 px-4 text-xs md:text-sm font-bold relative z-[110] flex items-center justify-center gap-2 shadow-sm">
+    <div class="bg-brand-500 text-white text-center py-2 px-4 text-xs md:text-sm font-bold relative z-40 flex items-center justify-center gap-2 shadow-sm">
         <i class="fa-solid fa-certificate text-white animate-spin" style="animation-duration: 4s;"></i>
         <span>כל המסעדות כשרות למהדרין / כשרות וסגורות בשבת כהלכה! 🍷</span>
     </div>
@@ -275,33 +275,33 @@
             </h2>
             <span class="text-xs text-slate-400 font-bold">החליקו ימינה/שמאלה <i class="fa-solid fa-arrows-left-right"></i></span>
         </div>
-        <div class="flex gap-2.5 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 no-scrollbar w-full snap-x" id="categoryCarousel"></div>
+        <div class="flex gap-2.5 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 no-scrollbar w-full" id="categoryCarousel"></div>
     </section>
 
     <section class="sticky-filters bg-white/95 backdrop-blur-md border-y border-slate-100 shadow-sm py-2 z-90 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 w-full">
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap snap-x" style="scrollbar-width: none;">
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap" style="scrollbar-width: none;">
                 
                 <button onclick="toggleFilterChip('mehadrinOnly')" id="chip-mehadrinOnly" 
-                        class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
                     <i class="fa-solid fa-stamp text-amber-500"></i>
                     <span>למהדרין בלבד</span>
                 </button>
 
                 <button onclick="toggleFilterChip('openNow')" id="chip-openNow" 
-                        class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
                     <i class="fa-solid fa-clock text-emerald-500"></i>
                     <span>פתוח עכשיו</span>
                 </button>
 
                 <button onclick="toggleFilterChip('meatOnly')" id="chip-meatOnly" 
-                        class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
                     <i class="fa-solid fa-drumstick-bite text-orange-500"></i>
                     <span>בשרי 🥩</span>
                 </button>
 
                 <button onclick="toggleFilterChip('dairyOnly')" id="chip-dairyOnly" 
-                        class="shrink-0 snap-start flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
+                        class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
                     <i class="fa-solid fa-cheese text-yellow-500"></i>
                     <span>חלבי 🧀</span>
                 </button>
@@ -427,7 +427,7 @@
         </div>
     </div>
 
-    <div id="detailPageContainer" class="fixed inset-0 z-[100] bg-white hidden overflow-y-auto page-transition opacity-0 pointer-events-none flex-col">
+    <div id="detailPageContainer" class="fixed inset-0 z-[150] bg-white hidden overflow-y-auto page-transition opacity-0 pointer-events-none flex-col">
         
         <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 h-14 px-4 flex items-center justify-between shrink-0 z-50">
             <button onclick="closeDetailsModal()" class="text-slate-800 font-black flex items-center gap-1.5 py-1.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs transition-colors">
@@ -473,7 +473,7 @@
                 </header>
 
                 <div class="px-4 py-3 bg-slate-950 border-t border-slate-800/80">
-                    <div id="modalGalleryContainer" class="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth snap-x"></div>
+                    <div id="modalGalleryContainer" class="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth"></div>
                 </div>
             </div>
 
@@ -615,9 +615,8 @@
         
         let currentModalPlaceId = null;
         let isNavigating = false;
-        let isShowingFavoritesOnly = false; // משתנה גלובלי להצגת מועדפים במפה
+        let isShowingFavoritesOnly = false; 
         
-        // --- מערכת Lazy Load למפות Google ---
         let isGoogleMapsLoading = false;
         let isGoogleMapsLoaded = false;
 
@@ -643,9 +642,7 @@
                 requestUserLocation(true); 
             }
         };
-        // ------------------------------------
 
-        // פונקציית עזר ליצירת Slug משם המסעדה לטובת המיני-סייט
         function generateSlug(name) {
             return name.trim().replace(/\s+/g, '-').replace(/[^\wא-ת-]/g, '').replace(/-+/g, '-');
         }
@@ -780,6 +777,9 @@
         });
 
         function handleLogoClick() {
+            // הוספה של שחרור נעילת גלילה במידה ויש
+            document.body.classList.remove('overflow-hidden');
+            
             activeCategory = 'all';
             activeCity = 'all';
             searchKeyword = '';
@@ -1194,6 +1194,8 @@
         }
 
         function applyBookingSearch() {
+            // שחרור הגלילה כדי למנוע את תקיעת העמוד אחרי סינון
+            document.body.classList.remove('overflow-hidden');
             renderPlaces();
             showToast("🔍 החיפוש הוחל בהצלחה!", "success");
             scrollToGrid();
@@ -1231,6 +1233,8 @@
         }
 
         function resetFilters() {
+            // שחרור הגלילה ליתר ביטחון בעת איפוס מלא
+            document.body.classList.remove('overflow-hidden');
             handleLogoClick();
             showToast("🧹 כל המסננים אופסו", "success");
         }
@@ -1244,7 +1248,7 @@
                 const isActive = activeCategory === catKey;
 
                 const card = document.createElement('button');
-                card.className = `shrink-0 snap-start flex items-center gap-2 px-5 py-3 rounded-2xl border font-bold text-xs md:text-sm transition-all duration-200 ${
+                card.className = `shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl border font-bold text-xs md:text-sm transition-all duration-200 ${
                     isActive ? 'bg-brand-500 text-white border-brand-500 shadow-md scale-105' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`;
                 card.onclick = () => {
@@ -1427,7 +1431,7 @@
         }
 
         function renderPlaces() {
-            isShowingFavoritesOnly = false; // איפוס תצוגת מפה כללית
+            isShowingFavoritesOnly = false;
             
             const grid = document.getElementById('placesGrid');
             const counter = document.getElementById('resultsCounter');
@@ -1716,7 +1720,7 @@
                 const img = document.createElement('img');
                 img.src = imgUrl;
                 img.alt = `תמונה של ${place.name} - ${idx+1}`;
-                img.className = `h-16 w-24 sm:h-20 sm:w-28 shrink-0 object-cover rounded-xl cursor-pointer transition-all border-2 snap-center ${idx === currentGalleryIndex ? 'border-brand-500 ring-2 ring-brand-500/50 opacity-100' : 'border-transparent opacity-50 hover:opacity-100'}`;
+                img.className = `h-16 w-24 sm:h-20 sm:w-28 shrink-0 object-cover rounded-xl cursor-pointer transition-all border-2 ${idx === currentGalleryIndex ? 'border-brand-500 ring-2 ring-brand-500/50 opacity-100' : 'border-transparent opacity-50 hover:opacity-100'}`;
                 img.onclick = () => {
                     currentGalleryIndex = idx;
                     updateSliderImage();
@@ -1964,10 +1968,10 @@
             const thumbs = document.querySelectorAll('#modalGalleryContainer img');
             thumbs.forEach((thumb, idx) => {
                 if (idx === currentGalleryIndex) {
-                    thumb.className = "h-16 w-24 sm:h-20 sm:w-28 shrink-0 object-cover rounded-xl cursor-pointer transition-all border-2 border-brand-500 ring-2 ring-brand-500/50 opacity-100 snap-center";
+                    thumb.className = "h-16 w-24 sm:h-20 sm:w-28 shrink-0 object-cover rounded-xl cursor-pointer transition-all border-2 border-brand-500 ring-2 ring-brand-500/50 opacity-100";
                     thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 } else {
-                    thumb.className = "h-16 w-24 sm:h-20 sm:w-28 shrink-0 object-cover rounded-xl cursor-pointer transition-all border-2 border-transparent opacity-50 hover:opacity-100 snap-center";
+                    thumb.className = "h-16 w-24 sm:h-20 sm:w-28 shrink-0 object-cover rounded-xl cursor-pointer transition-all border-2 border-transparent opacity-50 hover:opacity-100";
                 }
             });
         }
@@ -2080,7 +2084,6 @@
             localStorage.setItem('kosher_favorites', JSON.stringify(favorites));
             sanitizeFavorites(); 
             
-            // עדכון המפה בזמן אמת במידה ואנו במצב מועדפים במפה
             if (isShowingFavoritesOnly) {
                 const favPlaces = placesDatabase.filter(p => favorites.includes(p.id));
                 updateMapsMarkers(favPlaces);
@@ -2127,8 +2130,12 @@
             if (isOpen) {
                 renderFavoritesList();
                 panel.classList.remove('hidden');
+                // הוספת מניעת גלילה כאשר פאנל המועדפים פתוח
+                document.body.classList.add('overflow-hidden');
             } else {
                 panel.classList.add('hidden');
+                // שחרור גלילה בעת סגירה
+                document.body.classList.remove('overflow-hidden');
             }
         }
 
@@ -2249,11 +2256,10 @@
                 const isFav = favorites.includes(place.id);
                 
                 let customIcon = null;
-                // סמנים בצורת כוכב למסעדות שבמועדפים
                 if (isFav) {
                     customIcon = {
                         path: 'M 12 2.1 L 15.09 8.36 L 22 9.37 L 17 14.24 L 18.18 21.12 L 12 17.87 L 5.82 21.12 L 7 14.24 L 2 9.37 L 8.91 8.36 Z',
-                        fillColor: '#fbbf24', // זהב-מועדפים
+                        fillColor: '#fbbf24', 
                         fillOpacity: 1,
                         strokeColor: '#b45309',
                         strokeWeight: 1.5,
@@ -2387,12 +2393,14 @@
 
             if (tab === 'search') {
                 mobileMapPage.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
                 tabSearchBtn.classList.remove('text-slate-400');
                 tabSearchBtn.classList.add('text-brand-500');
                 tabMapBtn.classList.add('text-slate-400');
                 tabMapBtn.classList.remove('text-brand-500');
             } else if (tab === 'map') {
                 mobileMapPage.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
                 tabMapBtn.classList.remove('text-slate-400');
                 tabMapBtn.classList.add('text-brand-500');
                 tabSearchBtn.classList.add('text-slate-400');
