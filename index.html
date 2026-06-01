@@ -633,7 +633,7 @@
             isGoogleMapsLoading = false;
             if (placesDatabase.length > 0) {
                 initMaps();
-                resolveCoordinatesForPlaces();
+                // פונקציית הטעינה היקרה (Geocoding) הוסרה מכאן
                 renderPlaces(); 
             }
             if (isGeoActive && userCoords) {
@@ -974,6 +974,16 @@
                 
                 placesDatabase = data.map((item, index) => {
                     const placeCity = item.city || detectCityFromAddress(item.address) || 'מרכז';
+                    
+                    // משיכת הקואורדינטות ישירות מהשיטס במקום לפנות ל-Google API
+                    let parsedCoords = null;
+                    if (item.coordinates && typeof item.coordinates === 'string' && item.coordinates.includes(',')) {
+                        const parts = item.coordinates.split(',');
+                        parsedCoords = { lat: parseFloat(parts[0].trim()), lng: parseFloat(parts[1].trim()) };
+                    } else {
+                        parsedCoords = generateRealisticCoords({ city: placeCity }, index);
+                    }
+
                     return {
                         id: item.place_id || `place-${index}`,
                         name: item.name || 'מסעדה כשרה',
@@ -991,7 +1001,7 @@
                         image: item.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
                         kosher: item.kosher || 'כשר למהדרין',
                         reviews: item.reviews || 'מקום מצוין, שירות אדיב ואוכל טעים מאוד!|הגענו בערב והיה פשוט מושלם, נחזור בטוח.',
-                        coords: generateRealisticCoords({ city: placeCity }, index),
+                        coords: parsedCoords,
                         gallery: [
                             item.image,
                             item.image2 || 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80',
@@ -1012,7 +1022,6 @@
                 
                 if (isGoogleMapsLoaded) {
                     initMaps();
-                    resolveCoordinatesForPlaces();
                 }
                 
                 checkDeepLink(); 
@@ -1065,7 +1074,6 @@
             
             if (isGoogleMapsLoaded) {
                 initMaps();
-                resolveCoordinatesForPlaces();
             }
             
             checkDeepLink(); 
@@ -1268,42 +1276,6 @@
             return R * c; 
         }
 
-        async function resolveCoordinatesForPlaces() {
-            if (typeof google === 'undefined' || !google.maps || !google.maps.Geocoder) {
-                setTimeout(resolveCoordinatesForPlaces, 500);
-                return;
-            }
-            
-            const geocoder = new google.maps.Geocoder();
-            
-            for (let i = 0; i < placesDatabase.length; i++) {
-                const place = placesDatabase[i];
-                try {
-                    const exactCoords = await new Promise((resolve, reject) => {
-                        geocoder.geocode({ address: place.address }, (results, status) => {
-                            if (status === 'OK' && results && results[0]) {
-                                resolve({
-                                    lat: results[0].geometry.location.lat(),
-                                    lng: results[0].geometry.location.lng()
-                                });
-                            } else {
-                                reject(status);
-                            }
-                        });
-                    });
-                    
-                    place.coords = exactCoords;
-                } catch (err) {
-                    console.warn(`Could not resolve location for ${place.name} - Fallback used.`);
-                }
-                
-                await new Promise(r => setTimeout(r, 100));
-            }
-            
-            sanitizeFavorites();
-            renderPlaces();
-        }
-
         function requestUserLocation(isAutoPrompt = false) {
             const geoBtnTexts = [
                 document.getElementById('locationBtnText'),
@@ -1311,7 +1283,7 @@
             ];
             
             if (!isAutoPrompt) {
-                loadGoogleMapsAPI(); // נטעין את המפה אם המשתמש לחץ באופן יזום
+                loadGoogleMapsAPI(); 
             }
 
             try {
@@ -1727,7 +1699,7 @@
                         mapTypeControl: false,
                         streetViewControl: false,
                         fullscreenControl: true,
-                        gestureHandling: 'cooperative', // מתקן את התקיעה של הגלילה במובייל!
+                        gestureHandling: 'cooperative', 
                         zoomControl: true 
                     });
                     detailModalMarker = new google.maps.Marker({
@@ -1858,7 +1830,7 @@
             container.classList.remove('hidden');
             container.classList.add('flex');
             
-            container.scrollTo({ top: 0, behavior: 'smooth' }); // תיקון החלקה לראש העמוד בעת פתיחה או מעבר ממסעדה קשורה
+            container.scrollTo({ top: 0, behavior: 'smooth' }); 
             
             document.body.classList.add('overflow-hidden');
             
@@ -1889,7 +1861,6 @@
 
             let related = placesDatabase.filter(p => p.id !== currentPlace.id);
 
-            // מיון לפי מרחק: אל המשתמש אם פעיל, אחרת אל המסעדה הנוכחית
             const refLat = (isGeoActive && userCoords) ? userCoords.lat : currentPlace.coords.lat;
             const refLng = (isGeoActive && userCoords) ? userCoords.lng : currentPlace.coords.lng;
 
@@ -1903,7 +1874,6 @@
 
             related.sort((a, b) => a.tempDist - b.tempDist);
 
-            // סליידר ללא הגבלה - מציג את כל המסעדות
             if (related.length === 0) {
                 container.innerHTML = `<div class="p-3 text-slate-400 text-xs">אין מסעדות נוספות להמליץ באזור זה</div>`;
                 return;
@@ -1916,7 +1886,6 @@
                 item.className = "shrink-0 w-44 bg-slate-50 rounded-2xl p-2 border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer";
                 item.onclick = () => {
                     openPlaceDetails(place.id);
-                    // גלילה חלקה מעלה מופעלת כבר בתוך openPlaceDetails
                 };
 
                 item.innerHTML = `
