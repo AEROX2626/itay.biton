@@ -47,7 +47,7 @@
             padding: 0;
             background-color: #fcfdfe;
             -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden; 
+            overflow-x: clip; 
         }
         body {
             font-family: 'Rubik', sans-serif !important;
@@ -56,7 +56,7 @@
             margin: 0;
             padding: 0;
             background-color: #fcfdfe;
-            overflow-x: hidden; 
+            overflow-x: clip; 
             -webkit-overflow-scrolling: touch; 
         }
         
@@ -113,34 +113,6 @@
             width: 100%;
             height: 100%;
             min-height: 350px;
-        }
-
-        /* Mobile RTL Horizontal Scroll Fixes */
-        #categoryCarousel,
-        #relatedPlacesContainer,
-        #modalGalleryContainer,
-        .sticky-filters .overflow-x-auto {
-            scroll-padding-inline: 1rem;
-        }
-
-        #categoryCarousel > *, 
-        #relatedPlacesContainer > *, 
-        #modalGalleryContainer > *, 
-        .sticky-filters .overflow-x-auto > * {
-            flex-shrink: 0 !important;
-        }
-
-        #categoryCarousel::after, 
-        #relatedPlacesContainer::after, 
-        #modalGalleryContainer::after, 
-        .sticky-filters .overflow-x-auto::after {
-            content: '';
-            display: block;
-            flex-shrink: 0;
-            width: 1rem;
-            min-width: 1rem;
-            height: 1px;
-            pointer-events: none;
         }
     </style>
     
@@ -303,12 +275,12 @@
             </h2>
             <span class="text-xs text-slate-400 font-bold">החליקו ימינה/שמאלה <i class="fa-solid fa-arrows-left-right"></i></span>
         </div>
-        <div class="flex flex-nowrap gap-2.5 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 no-scrollbar w-full" id="categoryCarousel"></div>
+        <div class="flex gap-2.5 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8 no-scrollbar w-full" id="categoryCarousel"></div>
     </section>
 
     <section class="sticky-filters bg-white/95 backdrop-blur-md border-y border-slate-100 shadow-sm py-2 z-90 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 w-full">
-            <div class="flex flex-nowrap items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap" style="scrollbar-width: none;">
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full w-full whitespace-nowrap" style="scrollbar-width: none;">
                 
                 <button onclick="toggleFilterChip('mehadrinOnly')" id="chip-mehadrinOnly" 
                         class="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all border border-slate-200 text-slate-700 bg-white hover:bg-slate-50">
@@ -501,7 +473,7 @@
                 </header>
 
                 <div class="px-4 py-3 bg-slate-950 border-t border-slate-800/80">
-                    <div id="modalGalleryContainer" class="flex flex-nowrap gap-2.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth"></div>
+                    <div id="modalGalleryContainer" class="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth"></div>
                 </div>
             </div>
 
@@ -586,7 +558,7 @@
                         <i class="fa-solid fa-utensils wolt-text-cyan"></i>
                         <span>עוד מסעדות באזור עבורך</span>
                     </h3>
-                    <div id="relatedPlacesContainer" class="flex flex-nowrap gap-3 overflow-x-auto pb-2 no-scrollbar scroll-smooth"></div>
+                    <div id="relatedPlacesContainer" class="flex gap-3 overflow-x-auto pb-2 no-scrollbar scroll-smooth"></div>
                 </section>
 
             </div>
